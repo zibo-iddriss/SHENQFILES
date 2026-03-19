@@ -1,0 +1,133 @@
+# OBOADE NYAME HARDWARES Store - Apache Configuration
+# Place this file in the project root directory
+
+# Enable RewriteEngine
+RewriteEngine On
+RewriteBase /
+
+# ============================================================================
+# HTTPS Redirect (Uncomment when SSL is enabled)
+# ============================================================================
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# ============================================================================
+# Prevent Direct Access to Sensitive Files
+# ============================================================================
+<FilesMatch "\.(sql|json|xml|config|env|txt|bak|backup)$">
+  Deny from all
+  Order allow,deny
+</FilesMatch>
+
+# Protect config.php specifically
+<Files "config.php">
+  Deny from all
+  Order allow,deny
+</Files>
+
+# ============================================================================
+# Security Headers
+# ============================================================================
+<IfModule mod_headers.c>
+  # Prevent Clickjacking
+  Header always set X-Frame-Options "SAMEORIGIN"
+  
+  # Prevent MIME type sniffing
+  Header always set X-Content-Type-Options "nosniff"
+  
+  # Enable XSS protection
+  Header always set X-XSS-Protection "1; mode=block"
+  
+  # Referrer Policy
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  
+  # Content Security Policy (Adjust for CDN usage)
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com;"
+  
+  # Feature Policy
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# ============================================================================
+# Disable Directory Listing
+# ============================================================================
+Options -Indexes
+
+# ============================================================================
+# Default Files to Serve
+# ============================================================================
+DirectoryIndex index.php index.html index.htm
+
+# ============================================================================
+# Compress Content (Gzip)
+# ============================================================================
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html
+  AddOutputFilterByType DEFLATE text/plain
+  AddOutputFilterByType DEFLATE text/xml
+  AddOutputFilterByType DEFLATE text/css
+  AddOutputFilterByType DEFLATE text/javascript
+  AddOutputFilterByType DEFLATE application/javascript
+  AddOutputFilterByType DEFLATE application/xml
+</IfModule>
+
+# ============================================================================
+# Caching Headers (Adjust TTL as needed)
+# ============================================================================
+<IfModule mod_expires.c>
+  ExpiresActive On
+  
+  # HTML files
+  ExpiresByType text/html "access plus 1 hour"
+  
+  # CSS and JavaScript
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType text/javascript "access plus 1 year"
+  
+  # Images
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/gif "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  
+  # Default
+  ExpiresDefault "access plus 2 days"
+</IfModule>
+
+# ============================================================================
+# Remove Server Signature (Hide Apache version)
+# ============================================================================
+ServerTokens Prod
+ServerSignature Off
+
+# ============================================================================
+# Prevent Script Execution in Upload Directories (if applicable)
+# ============================================================================
+# <Directory "/var/www/uploads">
+#   php_flag engine off
+#   AddType text/plain .php .php3 .php4 .php5 .phtml
+# </Directory>
+
+# ============================================================================
+# Rate Limiting for Login (requires mod_ratelimit)
+# ============================================================================
+# <Directory "/login.php">
+#   SetEnvIf Request_URI "/login.php" rate-limit
+#   SetEnvIf Request_Method POST rate-limit
+# </Directory>
+
+# ============================================================================
+# Deny Access from Specific IPs (Optional)
+# ============================================================================
+# Order allow,deny
+# Allow from all
+# Deny from 192.168.1.100
+
+# ============================================================================
+# Firewall Rules (ModSecurity - if available)
+# ============================================================================
+# <IfModule mod_security.c>
+#   SecRuleEngine On
+#   SecDefaultAction "phase:2,log,allow"
+# </IfModule>
